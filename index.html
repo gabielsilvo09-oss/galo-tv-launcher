@@ -141,5 +141,134 @@
 
     <header>
         <div class="header-title">
-            <div class="badge-galo">
+            <div class="badge-galo">🐔 GALO TV</div>
+            <div>
+                <h2 style="margin:0; font-size:22px;">Atlético Mineiro & Conteúdos</h2>
+                <span style="font-size: 14px; color: var(--text-muted);">Sua Tela Inicial Personalizada</span>
+            </div>
+        </div>
+        <div class="clock" id="clock">--:--</div>
+    </header>
+
+    <div class="section-title">⚡ Próximos Jogos do Galo (Atualizado Automático)</div>
+    <div class="row" id="games-container">
+        <div class="card galo-card" tabindex="0">
+            <h3>PRÓXIMO JOGO</h3>
+            <p id="game1-title"><strong>Buscando jogo...</strong></p>
+            <p id="game1-date">📅 Carregando...</p>
+            <p id="game1-venue" style="color: var(--galo-gold); font-size: 13px; margin-top: 8px;">Aguarde...</p>
+        </div>
+        <div class="card galo-card" tabindex="0">
+            <h3>SEGUINTE</h3>
+            <p id="game2-title"><strong>Buscando jogo...</strong></p>
+            <p id="game2-date">📅 Carregando...</p>
+            <p id="game2-venue" style="color: var(--galo-gold); font-size: 13px; margin-top: 8px;">Aguarde...</p>
+        </div>
+    </div>
+
+    <div class="section-title">📺 YouTube (Temas & Canais Favoritos)</div>
+    <div class="row">
+        <div class="card yt-card" tabindex="0" onclick="window.open('https://www.youtube.com/results?search_query=TV+Galo', '_blank')">
+            <div class="yt-thumbnail">▶️ TV Galo</div>
+            <div class="yt-info">
+                <h4>Últimos vídeos dos bastidores e treinos do Atlético</h4>
+            </div>
+        </div>
+        <div class="card yt-card" tabindex="0" onclick="window.open('https://www.youtube.com/results?search_query=Futebol+Brasileiro', '_blank')">
+            <div class="yt-thumbnail">⚽ Futebol</div>
+            <div class="yt-info">
+                <h4>Melhores momentos e análises da rodada</h4>
+            </div>
+        </div>
+        <div class="card yt-card" tabindex="0" onclick="window.open('https://www.youtube.com/results?search_query=Tecnologia', '_blank')">
+            <div class="yt-thumbnail">💻 Tecnologia</div>
+            <div class="yt-info">
+                <h4>Novidades e análises de gadgets e sistemas</h4>
+            </div>
+        </div>
+        <div class="card yt-card" tabindex="0" onclick="window.open('https://www.youtube.com/results?search_query=Stand+Up+Comedy', '_blank')">
+            <div class="yt-thumbnail">😂 Comédia</div>
+            <div class="yt-info">
+                <h4>Stand-up e vídeos para relaxar</h4>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('clock').innerText = `${hours}:${minutes}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        async function fetchGaloGames() {
+            try {
+                const response = await fetch('https://api.football-data.org/v4/teams/1766/matches?status=SCHEDULED', {
+                    headers: { 'X-Auth-Token': 'a9b2447990424564b1fec3b5f36e84d4' }
+                });
                 
+                if (!response.ok) throw new Error('Falha ao buscar via API');
+                
+                const data = await response.json();
+                const matches = data.matches;
+
+                if (matches && matches.length >= 2) {
+                    displayMatch(matches[0], 'game1');
+                    displayMatch(matches[1], 'game2');
+                } else {
+                    fallbackMatches();
+                }
+            } catch (error) {
+                console.log('Usando fallback local:', error);
+                fallbackMatches();
+            }
+        }
+
+        function displayMatch(match, elementPrefix) {
+            const home = match.homeTeam.shortName || match.homeTeam.name;
+            const away = match.awayTeam.shortName || match.awayTeam.name;
+            const dateObj = new Date(match.utcDate);
+            
+            const dateStr = dateObj.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' });
+            const timeStr = dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            const comp = match.competition.name || 'Campeonato';
+
+            document.getElementById(`${elementPrefix}-title`).innerHTML = `<strong>${home} x ${away}</strong>`;
+            document.getElementById(`${elementPrefix}-date`).innerText = `📅 ${dateStr} às ${timeStr} | ${comp}`;
+            document.getElementById(`${elementPrefix}-venue`).innerText = `Foco na vitória do Galo!`;
+        }
+
+        function fallbackMatches() {
+            document.getElementById('game1-title').innerHTML = `<strong>Flamengo x Galo</strong>`;
+            document.getElementById('game1-date').innerText = `📅 Hoje (26/10) às 20:00 | Brasileirão`;
+            document.getElementById('game1-venue').innerText = `Maracanã • Rio de Janeiro`;
+
+            document.getElementById('game2-title').innerHTML = `<strong>Galo x Cruzeiro</strong>`;
+            document.getElementById('game2-date').innerText = `📅 Quinta-feira (29/10) às 19:30 | Brasileirão`;
+            document.getElementById('game2-venue').innerText = `Arena MRV • Belo Horizonte`;
+        }
+
+        fetchGaloGames();
+
+        const cards = document.querySelectorAll('.card');
+        let currentIndex = 0;
+
+        if (cards.length > 0) {
+            cards[currentIndex].focus();
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                currentIndex = (currentIndex + 1) % cards.length;
+                cards[currentIndex].focus();
+            } else if (e.key === 'ArrowLeft') {
+                currentIndex = (currentIndex - 1 + cards.length) % cards.length;
+                cards[currentIndex].focus();
+            }
+        });
+    </script>
+</body>
+</html>
