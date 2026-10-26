@@ -1,0 +1,39 @@
+name: Atualizar jogos do Galo
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Buscar jogos
+        env:
+          FOOTBALL_DATA_KEY: ${{ secrets.FOOTBALL_DATA_KEY }}
+        run: |
+          set -e
+          curl -fsS -H "X-Auth-Token: $FOOTBALL_DATA_KEY" \
+            "https://api.football-data.org/v4/teams/1766/matches?status=SCHEDULED,TIMED" \
+            -o raw.json
+          jq '{atualizado: (now | todate),
+               jogos: [.matches | sort_by(.utcDate) | .[:2][] | {
+                 casa: (.homeTeam.shortName // .homeTeam.name),
+                 fora: (.awayTeam.shortName // .awayTeam.name),
+                 data: .utcDate,
+                 competicao: .competition.name
+               }]}' raw.json > jogos.json
+          rm raw.json
+
+      - name: Salvar no repositório
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add jogos.json
+          git diff --cached --quiet || (git commit -m "Atualiza jogos" && git push)
