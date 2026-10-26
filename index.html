@@ -1,3 +1,5 @@
+ 
+html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -70,4 +72,151 @@
             border-left: 5px solid var(--galo-gold);
             min-width: 320px;
         }
-        .galo-card h3 { margin: 0 0 10px 0; color: var(--galo-gold);
+        .galo-card h3 { margin: 0 0 10px 0; color: var(--galo-gold); font-size: 18px; }
+        .galo-card p { margin: 5px 0; color: var(--text-main); font-size: 15px; }
+        .yt-card { min-width: 260px; padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+        .yt-thumbnail {
+            width: 100%;
+            height: 130px;
+            background-color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-weight: bold;
+        }
+        .yt-info { padding: 12px; }
+        .yt-info h4 { margin: 0; font-size: 14px; color: var(--text-main); line-height: 1.4; }
+        .venue { color: var(--galo-gold); font-size: 13px; margin-top: 8px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <div class="badge-galo">🐔 GALO TV</div>
+            <div>
+                <h2 style="margin:0; font-size:22px;">Atlético Mineiro &amp; Conteúdos</h2>
+                <span style="font-size: 14px; color: var(--text-muted);">Sua tela inicial personalizada</span>
+            </div>
+        </div>
+        <div class="clock" id="clock">--:--</div>
+    </header>
+
+    <div class="section-title">⚡ Próximos jogos do Galo</div>
+    <div class="row" id="games-container">
+        <div class="card galo-card" tabindex="0">
+            <h3>PRÓXIMO JOGO</h3>
+            <p id="game1-title"><strong>Buscando jogo...</strong></p>
+            <p id="game1-date">📅 Carregando...</p>
+            <p class="venue" id="game1-venue"></p>
+        </div>
+        <div class="card galo-card" tabindex="0">
+            <h3>SEGUINTE</h3>
+            <p id="game2-title"><strong>Buscando jogo...</strong></p>
+            <p id="game2-date">📅 Carregando...</p>
+            <p class="venue" id="game2-venue"></p>
+        </div>
+    </div>
+
+    <div class="section-title">📺 Canais &amp; conteúdos favoritos</div>
+    <div class="row">
+        <div class="card yt-card" tabindex="0" data-busca="TV Galo">
+            <div class="yt-thumbnail" style="background-color: #1a1a1a; color: var(--galo-gold);">🐔 TV Galo</div>
+            <div class="yt-info"><h4>Bastidores, treinos e coletivas do Atlético</h4></div>
+        </div>
+        <div class="card yt-card" tabindex="0" data-busca="Loud Coringa">
+            <div class="yt-thumbnail" style="background-color: #2b0938; color: #b565ff;">🃏 LOUD Coringa</div>
+            <div class="yt-info"><h4>Lives, GTA RP e conteúdos do Coringa</h4></div>
+        </div>
+        <div class="card yt-card" tabindex="0" data-busca="Bistecone">
+            <div class="yt-thumbnail" style="background-color: #381a09; color: #ff9933;">🥩 Bistecone</div>
+            <div class="yt-info"><h4>Vídeos e gameplays do Bistecone</h4></div>
+        </div>
+        <div class="card yt-card" tabindex="0" data-busca="Futebol Brasileiro">
+            <div class="yt-thumbnail" style="background-color: #09381a; color: #33ff99;">⚽ Futebol</div>
+            <div class="yt-info"><h4>Melhores momentos e resenha da rodada</h4></div>
+        </div>
+    </div>
+
+    <script>
+        // Relógio
+        function updateClock() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('clock').textContent = h + ':' + m;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Jogos: lê o arquivo jogos.json, que o GitHub atualiza sozinho.
+        // Nenhuma chave de API fica nesta página.
+        function mostrarJogo(jogo, prefixo) {
+            const d = new Date(jogo.data);
+            const dia = d.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' });
+            const hora = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById(prefixo + '-title').innerHTML = '<strong></strong>';
+            document.getElementById(prefixo + '-title').firstChild.textContent = jogo.casa + ' x ' + jogo.fora;
+            document.getElementById(prefixo + '-date').textContent = '📅 ' + dia + ' às ' + hora;
+            document.getElementById(prefixo + '-venue').textContent = jogo.competicao || '';
+        }
+
+        function jogoIndisponivel(prefixo) {
+            document.getElementById(prefixo + '-title').innerHTML = '<strong>Jogo indisponível</strong>';
+            document.getElementById(prefixo + '-date').textContent = '📅 Sem dados no momento';
+            document.getElementById(prefixo + '-venue').textContent = '';
+        }
+
+        async function carregarJogos() {
+            try {
+                const resp = await fetch('jogos.json?t=' + Date.now());
+                if (!resp.ok) throw new Error('jogos.json não encontrado');
+                const dados = await resp.json();
+                const jogos = dados.jogos || [];
+                if (jogos.length === 0) throw new Error('lista vazia');
+                mostrarJogo(jogos[0], 'game1');
+                if (jogos[1]) { mostrarJogo(jogos[1], 'game2'); } else { jogoIndisponivel('game2'); }
+            } catch (erro) {
+                console.log('Jogos indisponíveis:', erro);
+                jogoIndisponivel('game1');
+                jogoIndisponivel('game2');
+            }
+        }
+        carregarJogos();
+        setInterval(carregarJogos, 30 * 60 * 1000);
+
+        // Cards do YouTube: abre a busca do canal
+        function abrirBusca(card) {
+            const busca = card.getAttribute('data-busca');
+            if (busca) {
+                window.open('https://www.youtube.com/results?search_query=' + encodeURIComponent(busca), '_blank');
+            }
+        }
+
+        // Navegação pelo controle: setas movem, OK abre
+        const cards = Array.from(document.querySelectorAll('.card'));
+        let currentIndex = 0;
+        if (cards.length > 0) { cards[currentIndex].focus(); }
+
+        cards.forEach(function (card, i) {
+            card.addEventListener('click', function () { currentIndex = i; abrirBusca(card); });
+        });
+
+        window.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                currentIndex = (currentIndex + 1) % cards.length;
+                cards[currentIndex].focus();
+                e.preventDefault();
+            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                currentIndex = (currentIndex - 1 + cards.length) % cards.length;
+                cards[currentIndex].focus();
+                e.preventDefault();
+            } else if (e.key === 'Enter') {
+                abrirBusca(cards[currentIndex]);
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
