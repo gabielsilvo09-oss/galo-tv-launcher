@@ -1,16 +1,16 @@
 {
-  "atualizado": "2026-11-14T18:24:11Z",
+  "atualizado": "2026-11-15T00:28:05Z",
   "jogos": [
-    {
-      "casa": "Mirassol",
-      "fora": "Mineiro",
-      "data": "2026-11-14T21:30:00Z",
-      "competicao": "Campeonato Brasileiro Série A"
-    },
     {
       "casa": "Mineiro",
       "fora": "Corinthians",
       "data": "2026-11-25T23:00:00Z",
+      "competicao": "Campeonato Brasileiro Série A"
+    },
+    {
+      "casa": "Mineiro",
+      "fora": "Vasco da Gama",
+      "data": "2026-11-29T22:30:00Z",
       "competicao": "Campeonato Brasileiro Série A"
     }
   ]
